@@ -15,38 +15,65 @@ void ElectricField::init() {
 void ElectricField::addCharge(GLfloat charge, glm::vec2 pos) {
 	Charge c(charge, pos);
 	charges.push_back(c);
+	
+	Circle circle;
+	circle.pos = pos;
+	circle.radius = 0.01;
+	chargeObjects.push_back(circle);
 }
 
 void ElectricField::createLines() {
-	fieldLines.clear();
-
 	for(int c = 0; c < charges.size(); c++) {
 		setLinesStartPoints(charges[c]);
-	}
-
-	for(int i = 0; i < fieldLines.size(); i++) {
-		for(int p = 1; p < 60000; p++) {
-			glm::vec2 newPointPos;
-			glm::vec2 prevPointPos;
-			glm::vec2 netField;
-
-			prevPointPos = fieldLines[i].getPoint(p-1);
-
-			netField = getNetElectricField(prevPointPos);
-			netField = glm::normalize(netField);
-
-			newPointPos = prevPointPos + netField * h;
-
-			fieldLines[i].addPoint(newPointPos);
-		}
-		fieldLines[i].updateBuffer();
-		fieldLines[i].setShader(lineShader);
+		genField(charges[c]);
 	}
 }
+
+void ElectricField::genField(Charge& charge) {
+	for(int i = 0; i < charge.getFieldLines().size(); i++) {
+		if(charge.getCharge() < 0) 
+			genLine(charge.getFieldLines()[i], false);
+		else
+			genLine(charge.getFieldLines()[i], true);
+
+		charge.getFieldLines()[i].updateBuffer();
+		charge.getFieldLines()[i].setShader(lineShader);
+	}
+}
+
+void ElectricField::genLine(Line& line, bool isPositive) {
+	for(int p = 1; p > 0; p++) {
+		glm::vec2 newPointPos;
+		glm::vec2 prevPointPos;
+		glm::vec2 netField;
+
+		prevPointPos = line.getPoint(p-1);
+
+		netField = getNetElectricField(prevPointPos);
+		netField = glm::normalize(netField);
+
+		if(!isPositive) 
+			netField = netField * -1.0f;
+
+		newPointPos = prevPointPos + netField * h;
+		if(abs(newPointPos.x) >= 1 || abs(newPointPos.y) >= 1)
+			return; 
+
+		line.addPoint(newPointPos);
+
+		for(Circle c : chargeObjects) 
+			if(c.isInCircle(newPointPos)) 
+				return;
+	}
+}
+
+
 void ElectricField::drawLines() {
-	glLineWidth(2.0f);
-	for(int i = 0; i < fieldLines.size(); i++)
-		fieldLines[i].draw();
+	glLineWidth(1.5f);
+
+	for(Charge ch : charges)
+		for(int i = 0; i < ch.getFieldLines().size(); i++)
+			ch.getFieldLines()[i].draw();
 }
 
 glm::vec2 ElectricField::getNetElectricField(glm::vec2 pos) {
@@ -61,15 +88,10 @@ glm::vec2 ElectricField::getNetElectricField(glm::vec2 pos) {
 }
 
 
-void ElectricField::setLinesStartPoints(Charge ch) {
-	if(ch.getCharge() < 0)
-		return;
-
+void ElectricField::setLinesStartPoints(Charge& ch) {
 	glm::vec2 pos = ch.getPosition();
-	GLfloat x = pos.x;
-	GLfloat y = pos.y;
 
-	int n = 8 * abs(ch.getCharge());
+	int n = 10 * abs(ch.getCharge());
 	float a = 360.0 / n;
 	a = glm::radians(a);
 
@@ -80,7 +102,7 @@ void ElectricField::setLinesStartPoints(Charge ch) {
 	);
 
 	for(int i = 0; i < n; i++) {
-		fieldLines.push_back(Line(pos + r));
+		ch.getFieldLines().push_back(Line(pos + r));
 		r = r * rotation;
 	}
 }

@@ -9,6 +9,10 @@
 #include <vector>
 #include <range.h>
 
+#include <iostream>
+
+#include <cmath>
+
 class ElectricField {
 public:
 	ElectricField();
@@ -17,21 +21,21 @@ public:
 
 	void addCharge(GLfloat charge, glm::vec2 pos);
 	void createLines();
-	void createEquipotential();
-
 	void drawLines();
 
 	glm::vec2 getNetElectricField(glm::vec2 pos);
 private:
 	std::vector<Charge> charges;
-	std::vector<Line> fieldLines;
+	std::vector<Circle> chargeObjects;
+
 	GLfloat h;
 
 	Shader lineShader;
 private:
-	void setLinesStartPoints(Charge);
+	void setLinesStartPoints(Charge&);
+
+	void genLine(Line&, bool isPositive);
+	void genField(Charge&);
 };
-
-
 
 #endif

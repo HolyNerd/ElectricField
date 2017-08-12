@@ -9,6 +9,9 @@
 #include <glm/ext.hpp>
 #include <glm/vec2.hpp>
 
+#include <vector>
+#include <line.h>
+
 class Charge {
 public:
 	Charge();
@@ -18,9 +21,13 @@ public:
 	glm::vec2 getPosition();
 
 	GLfloat getCharge();
+
+	std::vector<Line>& getFieldLines();
 private:
 	GLfloat Q;
 	glm::vec2 position;
+
+	std::vector<Line> fieldLines;
 };
 
 #endif

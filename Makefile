@@ -15,7 +15,7 @@ run: main
 
 main: $(SOURCE)main.o $(SOURCE)application.o $(SOURCE)shader.o \
 	$(SOURCE)charge.o $(SOURCE)electricField.o $(SOURCE)line.o \
-	$(HEADER)  $(SHADERS)
+	$(HEADER)*.h  $(SHADERS)*.glsl
 	$(MAKE) -o main $(SOURCE)main.o $(SOURCE)shader.o $(SOURCE)application.o \
 	$(SOURCE)charge.o $(SOURCE)electricField.o $(SOURCE)line.o \
 	-I$(INCLUDE) -I$(HEADER) -L$(LIB) $(LIB_LINK)

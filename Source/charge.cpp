@@ -25,3 +25,7 @@ glm::vec2 Charge::getElectricField(glm::vec2 pos) {
 glm::vec2 Charge::getPosition() {
 	return position;
 }
+
+std::vector<Line>& Charge::getFieldLines() {
+	return fieldLines;
+}
