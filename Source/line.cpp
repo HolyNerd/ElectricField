@@ -3,6 +3,9 @@
 #include <GL3/gl3w.h>
 #include <GL/glfw3.h>
 #include <iostream>
+
+#include <range.h>
+
 Line::Line() { 
 	buffers = new GLuint[numBuffers];
 	shader = new Shader();
@@ -14,8 +17,59 @@ Line::Line(glm::vec2 startPoint) {
 	shader = new Shader();
 }
 
+Line::Line(const Line& rhs) { 
+
+	controlPoints = rhs.controlPoints;
+
+	buffers = new GLuint[numBuffers];
+	shader = new Shader();
+	*shader = *(rhs.shader);
+
+	glCreateBuffers(numBuffers, buffers);
+	glCreateVertexArrays(1, &vao);
+
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, buffers[positionBuffer]);
+
+
+	glBufferData(
+		GL_ARRAY_BUFFER, 
+		controlPoints.size() * sizeof(glm::vec2), 
+		controlPoints.data(), 
+		GL_STATIC_DRAW
+	);
+
+	glVertexArrayVertexBuffer(vao, 0, buffers[positionBuffer], 0, 
+	sizeof(GLfloat)*2);
+	glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+ 
+	glVertexAttribBinding(0, 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
 void Line::addPoint(glm::vec2 point) {
 	controlPoints.push_back(point);
+}
+
+bool Line::isIntersects(int startPoint, int endPoint, Line& rhs) {
+
+	for(int i = startPoint; i < endPoint; i++) {
+
+		glm::vec2 currPoint = controlPoints[i];
+
+
+		for(int p = 0; p < rhs.getSize(); p++) {
+			if(isNear(currPoint, rhs.getPoint(p), 0.001)) {
+
+				return true;
+			}
+
+		}
+	}
+	return false;
 }
 
 void Line::setShader(Shader shader) {
@@ -66,4 +120,70 @@ void Line::draw() {
 	glBindVertexArray(vao);
 	glDrawArrays(GL_LINE_STRIP, 0, controlPoints.size());
 	glBindVertexArray(0);
+}
+
+
+bool Line::isNear(glm::vec2 pos, glm::vec2 target, GLfloat radius) {
+	Circle c;
+	c.pos = pos;
+	c.radius = radius;
+	if(c.isInCircle(target))
+		return true;
+	return false;
+}
+
+bool Line::equal(const glm::vec2 &vecA, const glm::vec2 &vecB) {
+	const double epsilion = 0.0001;
+	return fabs(vecA[0] -vecB[0]) < epsilion   
+ 		&& fabs(vecA[1] -vecB[1]) < epsilion;
+}
+
+
+bool Line::operator==(const Line& rhs) {
+	glm::vec2 lhsLength = controlPoints[controlPoints.size()-1]-controlPoints[0];
+	glm::vec2 rhsLength = rhs.controlPoints[rhs.controlPoints.size()-1]-rhs.controlPoints[0];
+
+	if(glm::length(lhsLength) == glm::length(rhsLength))
+		return true;
+	return false;
+}
+bool Line::operator!=(const Line& rhs) {
+	glm::vec2 lhsLength = controlPoints[controlPoints.size()-1]-controlPoints[0];
+	glm::vec2 rhsLength = rhs.controlPoints[rhs.controlPoints.size()-1]-rhs.controlPoints[0];
+
+	if(glm::length(lhsLength) != glm::length(rhsLength))
+		return true;
+	return false;
+}
+bool Line::operator>(const Line& rhs) {
+	glm::vec2 lhsLength = controlPoints[controlPoints.size()-1]-controlPoints[0];
+	glm::vec2 rhsLength = rhs.controlPoints[rhs.controlPoints.size()-1]-rhs.controlPoints[0];
+
+	if(glm::length(lhsLength) > glm::length(rhsLength))
+		return true;
+	return false;
+}
+bool Line::operator<(const Line& rhs) {
+	glm::vec2 lhsLength = controlPoints[controlPoints.size()-1]-controlPoints[0];
+	glm::vec2 rhsLength = rhs.controlPoints[rhs.controlPoints.size()-1]-rhs.controlPoints[0];
+
+	if(glm::length(lhsLength) < glm::length(rhsLength))
+		return true;
+	return false;
+}
+bool Line::operator>=(const Line& rhs) {
+	glm::vec2 lhsLength = controlPoints[controlPoints.size()-1]-controlPoints[0];
+	glm::vec2 rhsLength = rhs.controlPoints[rhs.controlPoints.size()-1]-rhs.controlPoints[0];
+
+	if(glm::length(lhsLength) >= glm::length(rhsLength))
+		return true;
+	return false;
+}
+bool Line::operator<=(const Line& rhs) {
+	glm::vec2 lhsLength = controlPoints[controlPoints.size()-1]-controlPoints[0];
+	glm::vec2 rhsLength = rhs.controlPoints[rhs.controlPoints.size()-1]-rhs.controlPoints[0];
+
+	if(glm::length(lhsLength) <= glm::length(rhsLength))
+		return true;
+	return false;
 }
