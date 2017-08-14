@@ -5,12 +5,10 @@
 #include <charge.h>
 #include <shader.h>
 #include <line.h>
-
-#include <vector>
 #include <range.h>
 
+#include <vector>
 #include <iostream>
-
 #include <cmath>
 #include <algorithm>
 

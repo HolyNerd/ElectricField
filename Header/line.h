@@ -6,6 +6,8 @@
 #include <GL/glfw3.h>
 
 #include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -26,9 +28,12 @@ public:
 
 	bool isIntersects(int startPoint, int endPoint, Line& rhs);
 
+	void clear();
 	void setShader(Shader);
 	void updateBuffer();
 	void draw();
+
+	void setColor(glm::vec4 newColor);
 
 	bool operator==(const Line& rhs);
 	bool operator!=(const Line& rhs);
@@ -43,11 +48,13 @@ private:
 
 	std::vector<glm::vec2> controlPoints;
 
+	glm::vec4 lineColor;
+
 	Shader* shader;
 	GLuint* buffers;
 	GLuint vao;
 
-	enum buffersIDs { positionBuffer, numBuffers };
+	enum buffersIDs { positionBuffer, colorBuffer, numBuffers };
 };
 
 #endif

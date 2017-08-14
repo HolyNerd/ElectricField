@@ -1,5 +1,6 @@
 
 #include <application.h>
+#include <chrono>
 #include <iostream>
 
 #define HIGH_QUALITY
@@ -9,7 +10,7 @@ Application::Application() {
 	gl3wInit();	
 
 	shaderPath = "/home/holynerd/Desktop/Projects/ElectricField/Shaders/";	
-	window = glfwCreateWindow(950, 950, "OpenGL: Electric Field", NULL, NULL);
+	window = glfwCreateWindow(800, 800, "OpenGL: Electric Field", NULL, NULL);
 	glfwMakeContextCurrent(window);
 
 #ifdef HIGH_QUALITY
@@ -27,19 +28,15 @@ Application::~Application() {
 }
 
 void Application::init() {
-	std::cout << "Init Start()\n";
 	electricField.init();
 
-
-	electricField.addCharge( 1.0f, glm::vec2( 0.1f, -0.2f));
-	electricField.addCharge( 2.0f, glm::vec2( 0.0f, 0.5f));
-	electricField.addCharge( 5.0f, glm::vec2( 0.5f, 0.2f));
-	electricField.addCharge(-2.0f, glm::vec2( 0.0f,-0.2f));
-	electricField.addCharge( 1.0f, glm::vec2( 0.2f, 0.0f));
-	electricField.addCharge(-9.0f, glm::vec2( 0.9f, 0.9f));
-	electricField.addCharge( 5.0f, glm::vec2( -0.6f, -0.5f));
+	electricField.addCharge(-3.0, glm::vec2(-0.2, 0.0));	
+	electricField.addCharge( 3.0, glm::vec2(-0.1, 0.0));	
+	electricField.addCharge( 3.0, glm::vec2(-0.0, 0.0));	
+	electricField.addCharge(-3.0, glm::vec2( 0.1, 0.0));	
 
 	electricField.createLines();
+
 }
 
 void Application::display() {

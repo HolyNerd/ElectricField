@@ -1,7 +1,7 @@
 #include <range.h>
 
 bool Range::isIn(int i) {
-	if(i < end && i > start) { 
+	if((i < end && i > start) || (i > end && i < start) ) { 
 		return true;
 	}
 	else {

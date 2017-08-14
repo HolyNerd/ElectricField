@@ -2,7 +2,7 @@
 #include <electricField.h>
 
 #include <iostream>
-#include <algorithm>
+#include <math.h>
 
 #include <glm/vec3.hpp>
 #include <glm/mat2x2.hpp>
@@ -28,11 +28,16 @@ void ElectricField::addCharge(GLfloat charge, glm::vec2 pos) {
 }
 
 void ElectricField::createLines() {
+	potential.clear();
+	for(int i = 0; i < charges.size(); i++) {
+		charges[i].getFieldLines().clear();
+	}
+
 	for(int c = 0; c < charges.size(); c++) {
 		setLinesStartPoints(charges[c]);
 		genField(charges[c]);	
 
-		std::vector<Line> chargeLines(charges[c].getFieldLines());
+		std::vector<Line>& chargeLines = charges[c].getFieldLines();
 		std::sort(chargeLines.begin(), chargeLines.end());
 		genPotential(chargeLines[chargeLines.size()-1], charges[c].getCharge());
 	}
@@ -58,16 +63,19 @@ void ElectricField::genPotential(Line line, GLfloat charge) {
 	while(i < line.getSize()) {
 		int nextIndex = getNextPoint(i, charge);
 
-			
 		float nextLineMagnitude = getNetPotential(line.getPoint(nextIndex));
 		if(nextIndex > line.getSize())
 			nextLineMagnitude = getNetPotential(line.getPoint(i)) + 10;
 		float prevLineMagnitude = getNetPotential(line.getPoint(prevIndex));
 
-			
+		float currMagnitude = getNetPotential(line.getPoint(i));
+
+		if(std::signbit(nextLineMagnitude) != std::signbit(currMagnitude))
+			return;
+
 		Range magnitudeRange;
-		magnitudeRange.start = nextLineMagnitude+1;
-		magnitudeRange.end = prevLineMagnitude-1;
+		magnitudeRange.start = nextLineMagnitude;
+		magnitudeRange.end = prevLineMagnitude;
 
 		drawThisLine = true;
 
@@ -76,7 +84,7 @@ void ElectricField::genPotential(Line line, GLfloat charge) {
 			if(b) {
 				if(line.isIntersects(prevIndex, nextIndex, potential[p])) {
 					drawThisLine = false;
-					break;
+					return;
 				}
 			}
 		}
@@ -100,6 +108,8 @@ void ElectricField::genPotential(glm::vec2 point) {
 	glm::vec2 netField;
 			
 	glm::vec2 potentialDir;
+
+	GLfloat netPotential = getNetPotential(point);
 
 	for(int i = 1; i < 33000; i++) {
 		prevPointPos = line.getPoint(i-1);
@@ -125,9 +135,11 @@ void ElectricField::genPotential(glm::vec2 point) {
 			break;
 		}
 	}
-
-	line.updateBuffer();
 	line.setShader(potentialShader);
+
+	line.setColor(glm::vec4(150.0/255, 150.0/255, 150.0/255, 0.90 * abs(netPotential)/1000));
+	line.updateBuffer();
+	
 	potential.push_back(Line(line));
 }
 
@@ -170,6 +182,7 @@ void ElectricField::genLine(Line& line, bool isPositive) {
 			nextNetField*=-1;
 
 		if(equal(nextNetField, netField)) {
+			line.clear();
 			return;
 		}
 		for(Circle c : chargeObjects) 
@@ -179,7 +192,7 @@ void ElectricField::genLine(Line& line, bool isPositive) {
 }
 
 void ElectricField::drawLines() {
-	glLineWidth(0.5);
+	glLineWidth(1);
 	for(int i = 0; i < potential.size(); i++)
 		potential[i].draw();
 	

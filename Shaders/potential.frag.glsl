@@ -1,8 +1,9 @@
 
 #version 450 core
 
+in vec4 vColor;
 out vec4 color;
 
 void main(void) {
-	color = vec4((100)/255.0f, (100)/255.0f, (100)/255.0f, 1.0f);
+	color = vColor;
 }
