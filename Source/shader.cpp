@@ -14,7 +14,9 @@ Shader::Shader(const Shader& rhs) {
 }
 
 void Shader::shaderInfo(const std::string shaderName) {
+	std::cout << "3" << "\n";
 	GLuint vertShader = createShader(GL_VERTEX_SHADER, shaderName + ".vert.glsl");
+	std::cout << "3" << "\n";
 	GLuint fragShader = createShader(GL_FRAGMENT_SHADER, shaderName + ".frag.glsl");
 
 	program = glCreateProgram();

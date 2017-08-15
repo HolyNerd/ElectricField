@@ -1,11 +1,11 @@
 
-MAKE = g++ -std=c++11
+MAKE = g++ -std=c++11 
 SOURCE = /home/holynerd/Desktop/Projects/ElectricField/Source/
 INCLUDE = /home/holynerd/Desktop/Projects/ElectricField/includes/
 HEADER = /home/holynerd/Desktop/Projects/ElectricField/Header/
 SHADERS = /home/holynerd/Desktop/Projects/ElectricField/Shaders/
 LIB = /home/holynerd/LibsOpenGL/
-LIB_LINK = -lvermilion -lglfw3 -ldl -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lGL -lpthread
+LIB_LINK = -lGLEW -lglfw3 -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lGL -lpthread -lm -ldl
 
 all: run
 build: main
@@ -17,8 +17,8 @@ main: $(SOURCE)main.o $(SOURCE)application.o $(SOURCE)shader.o \
 	$(SOURCE)charge.o $(SOURCE)electricField.o $(SOURCE)line.o $(SOURCE)range.o\
 	$(HEADER)*.h  $(SHADERS)*.glsl
 	$(MAKE) -o main $(SOURCE)main.o $(SOURCE)shader.o $(SOURCE)application.o \
-	$(SOURCE)charge.o $(SOURCE)electricField.o $(SOURCE)line.o $(SOURCE)range.o \
-	-I$(INCLUDE) -I$(HEADER) -L$(LIB) $(LIB_LINK)
+	$(SOURCE)charge.o $(SOURCE)electricField.o $(SOURCE)line.o $(SOURCE)range.o  \
+	-I$(INCLUDE) -I$(HEADER) -L$(LIB) $(LIB_LINK) 
 
 $(SOURCE)main.o: $(SOURCE)main.cpp
 	$(MAKE) -c $(SOURCE)main.cpp -o$(SOURCE)main.o \

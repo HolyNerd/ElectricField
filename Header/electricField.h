@@ -18,6 +18,7 @@ public:
 
 	void init();
 
+	void clear();
 	void addCharge(GLfloat charge, glm::vec2 pos);
 	void createLines();
 	void drawLines();

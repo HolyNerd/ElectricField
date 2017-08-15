@@ -9,15 +9,20 @@
 #include <glm/glm.hpp>
 
 ElectricField::ElectricField() {
-	h = 0.001f;
+	h = 0.008f;
 }
 
 void ElectricField::init() {
+	std::cout << "2" << "\n";
 	lineShader.shaderInfo("/home/holynerd/Desktop/Projects/ElectricField/Shaders/line");
+	std::cout << "2" << "\n";
 	potentialShader.shaderInfo("/home/holynerd/Desktop/Projects/ElectricField/Shaders/potential");
+	std::cout << "2" << "\n";
 }
 
 void ElectricField::addCharge(GLfloat charge, glm::vec2 pos) {
+	if(charge == 0)
+		return;
 	Charge c(charge, pos);
 	charges.push_back(c);
 	
@@ -39,8 +44,9 @@ void ElectricField::createLines() {
 
 		std::vector<Line>& chargeLines = charges[c].getFieldLines();
 		std::sort(chargeLines.begin(), chargeLines.end());
-		genPotential(chargeLines[chargeLines.size()-1], charges[c].getCharge());
+		//genPotential(chargeLines[chargeLines.size()-1], charges[c].getCharge());
 	}
+	
 }
 
 void ElectricField::genField(Charge& charge) {
@@ -52,6 +58,12 @@ void ElectricField::genField(Charge& charge) {
 		charge.getFieldLines()[i].updateBuffer();
 		charge.getFieldLines()[i].setShader(lineShader);
 	}
+}
+
+void ElectricField::clear() {
+	charges.clear();
+	chargeObjects.clear();
+	potential.clear();
 }
 
 void ElectricField::genPotential(Line line, GLfloat charge) {
@@ -78,7 +90,7 @@ void ElectricField::genPotential(Line line, GLfloat charge) {
 		magnitudeRange.end = prevLineMagnitude;
 
 		drawThisLine = true;
-
+//*
 		for(int p = 0; p < potential.size(); p++) {
 			bool b = magnitudeRange.isIn(getNetPotential(potential[p].getPoint(0)));
 			if(b) {
@@ -88,7 +100,7 @@ void ElectricField::genPotential(Line line, GLfloat charge) {
 				}
 			}
 		}
-
+//*/
 		prevIndex = i;
 		if(drawThisLine) {
 			genPotential(line.getPoint(i));

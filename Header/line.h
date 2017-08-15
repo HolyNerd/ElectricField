@@ -2,7 +2,7 @@
 #ifndef LINE_H
 #define LINE_H
 
-#include <GL3/gl3w.h>
+#include <GL/glew.h>
 #include <GL/glfw3.h>
 
 #include <glm/vec2.hpp>

@@ -34,6 +34,8 @@
 		"typeinfo": "cpp",
 		"utility": "cpp",
 		"vector": "cpp",
-		"algorithm": "cpp"
+		"algorithm": "cpp",
+		"chrono": "cpp",
+		"ratio": "cpp"
 	}
 }

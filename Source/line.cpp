@@ -1,6 +1,6 @@
 
 #include <line.h>
-#include <GL3/gl3w.h>
+#include <GL/glew.h>
 #include <GL/glfw3.h>
 #include <iostream>
 #include <glm/gtc/type_ptr.hpp>
