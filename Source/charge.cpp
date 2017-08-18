@@ -1,29 +1,32 @@
 
 #include <charge.h>
 
-Charge::Charge() { }
+Charge::Charge() { 
+	Q = 0;
+	position = glm::vec2(0.0f, 0.0f);
+}
 Charge::Charge(GLfloat charge, glm::vec2 pos) 
 	: Q(charge), position(pos)
 { }
 
-GLfloat Charge::getCharge() {
+const glm::vec2& Charge::getPosition() const {
+	return position;
+}
+
+const GLfloat& Charge::getCharge() const {
 	return Q;
 }
 
-glm::vec2 Charge::getElectricField(glm::vec2 pos) {
+const glm::vec2 Charge::getElectricField(const glm::vec2& pos) const {
 	glm::vec2 unit = pos - position;
 	GLfloat r = glm::length(unit);
 	unit = glm::normalize(unit);
 
 	GLfloat E = Q / pow(r, 2);
 
-	glm::vec2 force = E * unit;
+	glm::vec2 field = E * unit;
 
-	return force;
-}
-
-glm::vec2 Charge::getPosition() {
-	return position;
+	return field;
 }
 
 std::vector<Line>& Charge::getFieldLines() {

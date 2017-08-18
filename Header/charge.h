@@ -1,26 +1,36 @@
+////////////////////////////////////////////////////////////////
+// Class Charge contains position and value of charge at position
+// in space. Calculates magnitude and direction of electric field,
+// that creates. Also contains field lines
+////////////////////////////////////////////////////////////////
 
 #ifndef CHARGE_H
 #define CHARGE_H
 
+#include <vector>
+
 #include <GL/glew.h>
-#include <GL/glfw3.h>
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 #include <glm/vec2.hpp>
 
-#include <vector>
 #include <line.h>
 
 class Charge {
 public:
+	// Constructors
 	Charge();
-	Charge(GLfloat, glm::vec2);
+	Charge(GLfloat value, glm::vec2 position);
 
-	glm::vec2 getElectricField(glm::vec2 pos);
-	glm::vec2 getPosition();
-
-	GLfloat getCharge();
+	// Return electric field, that creats this charge
+	// at point pos
+	const glm::vec2 getElectricField(const glm::vec2& pos) const;
+	
+	// Returns position of charge
+	const glm::vec2& getPosition() const;
+	// Returns value of charge
+	const GLfloat& getCharge() const;
 
 	std::vector<Line>& getFieldLines();
 private:

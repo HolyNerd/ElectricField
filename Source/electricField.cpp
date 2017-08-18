@@ -1,3 +1,5 @@
+#define FORCE_LINES
+#define EQUIPOTENTIAL
 
 #include <electricField.h>
 
@@ -8,45 +10,113 @@
 #include <glm/mat2x2.hpp>
 #include <glm/glm.hpp>
 
-ElectricField::ElectricField() {
-	h = 0.008f;
+ElectricField::ElectricField() 
+	: stride { 0.005f }, equipotentialLines(0)
+{
+
 }
 
 void ElectricField::init() {
-	std::cout << "2" << "\n";
 	lineShader.shaderInfo("/home/holynerd/Desktop/Projects/ElectricField/Shaders/line");
-	std::cout << "2" << "\n";
-	potentialShader.shaderInfo("/home/holynerd/Desktop/Projects/ElectricField/Shaders/potential");
-	std::cout << "2" << "\n";
 }
 
-void ElectricField::addCharge(GLfloat charge, glm::vec2 pos) {
+const glm::vec2 ElectricField::getNetElectricField(const glm::vec2& pos) const {
+	glm::vec2 netField;
+
+	for(int i = 0; i < charges.size(); i++) {
+		glm::vec2 eField = charges[i].getElectricField(pos);
+		netField += eField;
+	}
+	return netField;
+}
+const GLfloat ElectricField::getNetPotential(const glm::vec2& pos) const {
+	GLfloat sum = 0;
+	for(int i = 0; i < charges.size(); i++) {
+		glm::vec2 dist = pos - charges[i].getPosition();
+		GLfloat r = glm::length(dist);
+		GLfloat potential = charges[i].getCharge() * 90 / r ;
+		sum += potential; 
+	}
+	return sum;
+}
+
+void ElectricField::addCharge(const GLfloat& charge, const glm::vec2& pos) {
 	if(charge == 0)
 		return;
+
 	Charge c(charge, pos);
 	charges.push_back(c);
 	
-	Circle circle;
-	circle.pos = pos;
-	circle.radius = 0.01;
-	chargeObjects.push_back(circle);
+	Circle border;
+	border.pos = pos;
+	border.radius = 0.01;
+
+	chargesBorders.push_back(border);
+}
+void ElectricField::clear() {
+	charges.clear();
+	chargesBorders.clear();
+	equipotentialLines.clear();
+}
+void ElectricField::drawLines() {
+	
+	#ifdef EQUIPOTENTIAL // Draw equipotential lines
+	
+	glLineWidth(0.4f);
+	for(int i = 0; i < equipotentialLines.size(); i++)
+		equipotentialLines[i].draw();
+	#endif
+
+	#ifdef FORCE_LINES // Draw force lines
+	
+	glLineWidth(1.0f);
+	for(Charge ch : charges)
+		for(int i = 0; i < ch.getFieldLines().size(); i++)
+			ch.getFieldLines()[i].draw();
+	#endif
+	for(int i = 0; i < chargesSprites.size(); i++) {
+		chargesSprites[i].update();
+		chargesSprites[i].draw();
+	}
 }
 
+
 void ElectricField::createLines() {
-	potential.clear();
-	for(int i = 0; i < charges.size(); i++) {
-		charges[i].getFieldLines().clear();
+	chargesSprites.clear();	
+
+	// Delete previous lines
+	equipotentialLines.clear();
+	for(Charge ch : charges) {
+		ch.getFieldLines().clear();
+
+		Sprite newChargeSprite;
+		newChargeSprite.init();
+
+		newChargeSprite.setRect(ch.getPosition(), 0.1f, 0.1f);
+		if(ch.getCharge() > 0)
+			newChargeSprite.setTexture("/home/holynerd/Desktop/Projects/ElectricField/Media/ChargePos.png");
+		else
+		newChargeSprite.setTexture("/home/holynerd/Desktop/Projects/ElectricField/Media/ChargeNeg.png");
+		chargesSprites.push_back(newChargeSprite);
 	}
+	
 
 	for(int c = 0; c < charges.size(); c++) {
+
+		#ifdef FORCE_LINES
 		setLinesStartPoints(charges[c]);
 		genField(charges[c]);	
 
-		std::vector<Line>& chargeLines = charges[c].getFieldLines();
-		std::sort(chargeLines.begin(), chargeLines.end());
-		//genPotential(chargeLines[chargeLines.size()-1], charges[c].getCharge());
+		#endif
+
+		#ifdef EQUIPOTENTIAL
+
+			std::vector<Line>& chargeLines = charges[c].getFieldLines();
+			std::sort(chargeLines.begin(), chargeLines.end());
+			genPotential(chargeLines[chargeLines.size()-1], charges[c].getCharge());
+		
+		#endif
 	}
-	
 }
 
 void ElectricField::genField(Charge& charge) {
@@ -55,191 +125,76 @@ void ElectricField::genField(Charge& charge) {
 			genLine(charge.getFieldLines()[i], false);
 		else
 			genLine(charge.getFieldLines()[i], true);
+		
+		charge.getFieldLines()[i].setColor(glm::vec4(0.62f, 0.62f, 0.62f, 1.0f));
 		charge.getFieldLines()[i].updateBuffer();
 		charge.getFieldLines()[i].setShader(lineShader);
 	}
 }
+void ElectricField::genLine(Line& line, bool isPositive) {
+	bool drawNext = true;
+	int p = 1;
 
-void ElectricField::clear() {
-	charges.clear();
-	chargeObjects.clear();
-	potential.clear();
-}
-
-void ElectricField::genPotential(Line line, GLfloat charge) {
-	bool drawThisLine = false;
-
-	int prevIndex = 0;
-	int i = 1;
-
-	while(i < line.getSize()) {
-		int nextIndex = getNextPoint(i, charge);
-
-		float nextLineMagnitude = getNetPotential(line.getPoint(nextIndex));
-		if(nextIndex > line.getSize())
-			nextLineMagnitude = getNetPotential(line.getPoint(i)) + 10;
-		float prevLineMagnitude = getNetPotential(line.getPoint(prevIndex));
-
-		float currMagnitude = getNetPotential(line.getPoint(i));
-
-		if(std::signbit(nextLineMagnitude) != std::signbit(currMagnitude))
-			return;
-
-		Range magnitudeRange;
-		magnitudeRange.start = nextLineMagnitude;
-		magnitudeRange.end = prevLineMagnitude;
-
-		drawThisLine = true;
-//*
-		for(int p = 0; p < potential.size(); p++) {
-			bool b = magnitudeRange.isIn(getNetPotential(potential[p].getPoint(0)));
-			if(b) {
-				if(line.isIntersects(prevIndex, nextIndex, potential[p])) {
-					drawThisLine = false;
-					return;
-				}
-			}
-		}
-//*/
-		prevIndex = i;
-		if(drawThisLine) {
-			genPotential(line.getPoint(i));
-		}
-		i = getNextPoint(i, charge);
-	}
-}
-
-void ElectricField::genPotential(glm::vec2 point) {
-	float f = 0.001;
-
-	Line line;
-	line.addPoint(point);
-
-	glm::vec2 newPointPos;
+	glm::vec2 nextPointPos;
 	glm::vec2 prevPointPos;
 	glm::vec2 netField;
-			
-	glm::vec2 potentialDir;
+	while(p < 4000) {
 
-	GLfloat netPotential = getNetPotential(point);
-
-	for(int i = 1; i < 33000; i++) {
-		prevPointPos = line.getPoint(i-1);
-
-		netField = getNetElectricField(prevPointPos);
-		netField = glm::normalize(netField);
-
-		potentialDir = getPerpendicular(netField);
-
-		netField = getNetElectricField(prevPointPos + potentialDir * f);
-		netField = glm::normalize(netField);
-
-		glm::vec2 slope = getPerpendicular(netField);
-
-		slope = (potentialDir + slope) / 2;
-
-		newPointPos = prevPointPos + slope * f;
-
-		line.addPoint(newPointPos);
-
-		if(i > 100 && isNear(point, newPointPos, f)) {
-			line.addPoint(point);
-			break;
-		}
-	}
-	line.setShader(potentialShader);
-
-	line.setColor(glm::vec4(150.0/255, 150.0/255, 150.0/255, 0.90 * abs(netPotential)/1000));
-	line.updateBuffer();
-	
-	potential.push_back(Line(line));
-}
-
-int ElectricField::getNextPoint(int i, float charge) {
-	float f = i;
-
-	int c = i;
-	while(c == i) {
-		f += f / abs(charge);
-		i = f;
-	}
-	return i;
-}
-
-void ElectricField::genLine(Line& line, bool isPositive) {
-	for(int p = 1; p < 60000; p++) {
-		glm::vec2 newPointPos;
-		glm::vec2 prevPointPos;
-		glm::vec2 netField;
-
+		// Get previous point position
 		prevPointPos = line.getPoint(p-1);
 
+		// Get net electric field vector of previous point
 		netField = getNetElectricField(prevPointPos);
 		netField = glm::normalize(netField);
 
+		// If charge is negative - invert vector
 		if(!isPositive) 
 			netField = netField * -1.0f;
 
-		newPointPos = prevPointPos + netField * h;
+		glm::vec2 nextNetField = getNetElectricField(prevPointPos + netField * stride);
+		nextNetField = glm::normalize(nextNetField);
 
-		if(abs(newPointPos.x) >= 1 || abs(newPointPos.y) >= 1)
+		if(!isPositive) 
+			nextNetField = nextNetField * -1.0f;
+
+		netField = (netField + nextNetField) / 2;
+
+		// Set next point position
+		nextPointPos = prevPointPos + netField * stride;
+
+				// If next ends on some charge - end line drawing
+		for(Circle c : chargesBorders) 
+			if(c.isInCircle(nextPointPos)) 
+				return;
+
+		// Check for next net electric field
+	//	glm::vec2 nextNetField = getNetElectricField(nextPointPos);
+	//	nextNetField = glm::normalize(nextNetField);
+	//	if(isPositive)
+	//		nextNetField*=-1;
+				
+		// If next net electric field and current inverted are equil - then quit
+	//	if(areEqual(nextNetField, netField)) {
+	//		return;
+	//	}
+
+		// Add point to line
+		line.addPoint(nextPointPos);
+
+		// If point is out of screen - do not draw next point 
+		if(abs(nextPointPos.x) >= 1 || abs(nextPointPos.y) >= 1)
 			return; 
 
-		line.addPoint(newPointPos);
-
-		glm::vec2 nextNetField = getNetElectricField(newPointPos);
-		nextNetField = glm::normalize(nextNetField);
-		
-		if(isPositive)
-			nextNetField*=-1;
-
-		if(equal(nextNetField, netField)) {
-			line.clear();
-			return;
-		}
-		for(Circle c : chargeObjects) 
-			if(c.isInCircle(newPointPos)) 
-				return;
+		// Increment point index
+		p++;
 	}
 }
-
-void ElectricField::drawLines() {
-	glLineWidth(1);
-	for(int i = 0; i < potential.size(); i++)
-		potential[i].draw();
-	
-	glLineWidth(1.0f);
-
-	for(Charge ch : charges)
-		for(int i = 0; i < ch.getFieldLines().size(); i++)
-			ch.getFieldLines()[i].draw();
-}
-
-glm::vec2 ElectricField::getNetElectricField(glm::vec2 pos) {
-	glm::vec2 netField;
-
-	for(int i = 0; i < charges.size(); i++) {
-		glm::vec2 eField = charges[i].getElectricField(pos);
-		netField += eField;
-	}
-
-	return netField;
-}
-
-GLfloat ElectricField::getNetPotential(glm::vec2 pos) {
-	GLfloat sum = 0;
-	for(int i = 0; i < charges.size(); i++) {
-		glm::vec2 dist = pos - charges[i].getPosition();
-		GLfloat r = glm::length(dist);
-		GLfloat potential = charges[i].getCharge() / r * 100;
-		sum += potential; 
-	}
-	return sum;
-}
-
 void ElectricField::setLinesStartPoints(Charge& ch) {
+
+	// Get charge's position
 	glm::vec2 pos = ch.getPosition();
 
+	// Get lines amount and angle between them
 	int n = 10 * abs(ch.getCharge());
 	float a = 360.0 / n;
 	a = glm::radians(a);
@@ -256,23 +211,105 @@ void ElectricField::setLinesStartPoints(Charge& ch) {
 	}
 }
 
-bool ElectricField::isNear(glm::vec2 pos, glm::vec2 target, GLfloat radius) {
-	Circle c;
-	c.pos = pos;
-	c.radius = radius;
-	if(c.isInCircle(target))
-		return true;
-	return false;
-}
+void ElectricField::genPotential(const Line& line, const GLfloat& charge) {
 
-bool ElectricField::equal(const glm::vec2 &vecA, const glm::vec2 &vecB) {
-	const double epsilion = 0.0001;
-	return fabs(vecA[0] -vecB[0]) < epsilion   
- 		&& fabs(vecA[1] -vecB[1]) < epsilion;
-}
+	GLfloat voltage = 300.0f;
+	GLfloat potential = getNetPotential(line.getPoint(1));
 
-glm::vec2 ElectricField::getPerpendicular(glm::vec2 v) {
-	glm::vec2 perp(-v.y, v.x);
-		return perp;
+	int startPoint = equipotentialLines.size();
+
+	int i = 2;
+	while(i < line.getSize()) {
+		GLfloat nextPotential = getNetPotential(line.getPoint(i));
+		
+		if(std::signbit(nextPotential) != std::signbit(potential))
+			return;
+		
+		if(abs(potential - nextPotential) > voltage) {
+			GLfloat dif = potential - nextPotential;
+			for(int p2 = 0; p2 < startPoint; p2++) {
+				GLfloat lPotential = getNetPotential(equipotentialLines[p2].getPoint(0));
+				if(nextPotential + (voltage) > lPotential && nextPotential - (voltage) < lPotential) 
+					if(line.isIntersects(i, line.getSize(), equipotentialLines[p2])) 
+						return;
+			}
+
+			genPotential(line.getPoint(i));
+			potential = nextPotential;
+		}
+		i++;
+	}
+
+}
+void ElectricField::genPotential(const glm::vec2& point) {
+	float stride = 0.001;
+
+	Line line;
+	line.addPoint(point);
+
+	glm::vec2 newPointPos;
+	glm::vec2 prevPointPos;
+	glm::vec2 netField;
+			
+	glm::vec2 potentialDir;
+
+	GLfloat netPotential = abs(getNetPotential(point)) / 1000.0;
+	//std::cout << netPotential << "\n";
+
+	int i = 1;
+	bool drawNext = true;
+	while(i < 33000) {
+
+		// Get previoius point
+		prevPointPos = line.getPoint(i-1);
+
+		// Find out electric field in previous point
+		netField = getNetElectricField(prevPointPos);
+		netField = glm::normalize(netField);
+
+		// Potential vector direction - perpendicular of electric field at choosen point
+		potentialDir = getPerpendicular(netField);
+
+		// Find out electric field in next point
+		netField = getNetElectricField(prevPointPos + potentialDir * stride);
+		netField = glm::normalize(netField);
+
+		// Final slope vector - average of two prev vectors 
+		glm::vec2 slope = getPerpendicular(netField);
+		slope = (potentialDir + slope) / 2;
+
+		// Set new point position
+		newPointPos = prevPointPos + slope * stride;
+		line.addPoint(newPointPos);
+
+
+		if(i > 100 && isNear(point, newPointPos, stride*2)) {
+			line.addPoint(point);
+			break;
+		}
+
+		i++;
+	}
+
+	line.setShader(lineShader);
+	line.setColor(glm::vec4(0.2f, 0.2f, 0.2f, 0.2f * netPotential));
+	line.updateBuffer();
+	
+	equipotentialLines.push_back(Line(line));
+}
+int ElectricField::getNextPoint(const Line& line, int i, GLfloat voltage) {
+	GLfloat iPotential = getNetPotential(line.getPoint(i));
+	GLfloat potential = 0;
+
+	std::cout << "iPotential: " << iPotential << "\n"; 
+	std::cout << "i: " << i << "\n";
+	for(int p = i; p < line.getSize(); p++) {
+		potential = getNetPotential(line.getPoint(p));
+		std::cout << "Potential: " << potential << "\n";
+		if(iPotential - potential > voltage)
+			return p;
+		if(potential > iPotential)
+			return -1;
+	}
 }
 

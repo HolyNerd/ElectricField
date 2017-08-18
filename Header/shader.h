@@ -6,11 +6,15 @@
 
 class Shader { 
 public:
+	// Constructors
 	Shader();
 	Shader(const std::string shaderName);
 	Shader(const Shader&);
+	
+	// Set shader source
 	void shaderInfo(const std::string shaderName);
 
+	// Convert Shader object to program, needed by "glUseProgram(GLuint)"
 	operator GLuint();
 private:
 	GLuint program;

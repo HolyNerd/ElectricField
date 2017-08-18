@@ -11,7 +11,7 @@ bool Range::isIn(int i) {
 
 bool Circle::isInCircle(glm::vec2 p) {
 	glm::vec2 r = p - pos;
-	if(glm::length(r) > radius)
+	if(glm::length(r) >= radius)
 		return false;
 	return true;
 }

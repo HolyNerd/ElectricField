@@ -1,31 +1,38 @@
+
+
 #include <shader.h>
 #include <fstream>
 #include <iostream>
 
+// Constructors
 Shader::Shader() {
-
+	program = 0;
 }
 Shader::Shader(const std::string shaderName) {
 	shaderInfo(shaderName);
 }
-
 Shader::Shader(const Shader& rhs) {
 	program = rhs.program;
 }
 
 void Shader::shaderInfo(const std::string shaderName) {
-	std::cout << "3" << "\n";
+	// Creating temp shaders
 	GLuint vertShader = createShader(GL_VERTEX_SHADER, shaderName + ".vert.glsl");
-	std::cout << "3" << "\n";
 	GLuint fragShader = createShader(GL_FRAGMENT_SHADER, shaderName + ".frag.glsl");
 
+	// Create Program
 	program = glCreateProgram();
 
+	// Attaching and linking
 	glAttachShader(program, vertShader);
 	glAttachShader(program, fragShader);
-
 	glLinkProgram(program);
 
+	#ifdef DEBUG 
+		std::cout << "Shader " + shaderName + " compiled succesfully;\n"; 
+	#endif
+
+	// Program is linked, so we neednt shaders anymore
 	glDeleteShader(vertShader);
 	glDeleteShader(fragShader);
 }
@@ -33,13 +40,10 @@ void Shader::shaderInfo(const std::string shaderName) {
 Shader::operator GLuint() {
 	return program;
 }
-
 GLuint Shader::createShader(GLenum type, const std::string name) {
 	GLuint shader = glCreateShader(type);
 
 	std::string shaderSource = readShader(name);
-	
-	std::cout << "Creating shader: " << name << "\n";
 	
 	const char* shaderSrc = shaderSource.c_str();
 
@@ -64,7 +68,6 @@ GLuint Shader::createShader(GLenum type, const std::string name) {
 
 	return shader;
 }
-
 std::string Shader::readShader(const std::string fileName) { 
 	std::ifstream file;
 	file.open(fileName, std::ifstream::in);

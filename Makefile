@@ -14,10 +14,12 @@ run: main
 	./main
 
 main: $(SOURCE)main.o $(SOURCE)application.o $(SOURCE)shader.o \
-	$(SOURCE)charge.o $(SOURCE)electricField.o $(SOURCE)line.o $(SOURCE)range.o\
-	$(HEADER)*.h  $(SHADERS)*.glsl
+	$(SOURCE)charge.o $(SOURCE)electricField.o $(SOURCE)line.o \
+	$(SOURCE)range.o $(SOURCE)sprite.o \
+	$(SOURCE)functions.o $(HEADER)*.h  $(SHADERS)*.glsl
 	$(MAKE) -o main $(SOURCE)main.o $(SOURCE)shader.o $(SOURCE)application.o \
-	$(SOURCE)charge.o $(SOURCE)electricField.o $(SOURCE)line.o $(SOURCE)range.o  \
+	$(SOURCE)charge.o $(SOURCE)electricField.o $(SOURCE)line.o $(SOURCE)range.o \
+	$(SOURCE)sprite.o $(SOURCE)functions.o \
 	-I$(INCLUDE) -I$(HEADER) -L$(LIB) $(LIB_LINK) 
 
 $(SOURCE)main.o: $(SOURCE)main.cpp
@@ -44,8 +46,16 @@ $(SOURCE)line.o: $(SOURCE)line.cpp $(HEADER)line.h
 	$(MAKE) -c $(SOURCE)line.cpp -o$(SOURCE)line.o \
 	-I$(INCLUDE) -I$(HEADER)
 
+$(SOURCE)functions.o: $(SOURCE)functions.cpp $(HEADER)functions.h
+	$(MAKE) -c $(SOURCE)functions.cpp -o$(SOURCE)functions.o \
+	-I$(INCLUDE) -I$(HEADER)
+
 $(SOURCE)range.o: $(SOURCE)range.cpp $(HEADER)range.h
 	$(MAKE) -c $(SOURCE)range.cpp -o$(SOURCE)range.o \
+	-I$(INCLUDE) -I$(HEADER)
+
+$(SOURCE)sprite.o: $(SOURCE)sprite.cpp $(HEADER)sprite.h
+	$(MAKE) -c $(SOURCE)sprite.cpp -o$(SOURCE)sprite.o \
 	-I$(INCLUDE) -I$(HEADER)
 
 clean:

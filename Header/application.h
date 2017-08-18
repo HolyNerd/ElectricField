@@ -2,6 +2,8 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
+#include <vector>
+
 #include <GL/glew.h>
 #include <GL/glfw3.h>
 
@@ -11,10 +13,8 @@
 #include <glm/vec2.hpp>
 #include <glm/ext.hpp>
 
-#include <vector>
-
+#include <sprite.h>
 #include <shader.h>
-
 #include <electricField.h>
 
 class Application {
@@ -25,13 +25,11 @@ public:
 	void init();
 	void display();
 	void shutdown();
-
 private:
 	ElectricField electricField;
 public: GLFWwindow* getWindow() const;
 private: 
 	GLFWwindow* window;
-	std::string shaderPath;
 };
 
 #endif

@@ -2,53 +2,56 @@
 #ifndef ELECTRIC_FIELD_H
 #define ELECTRIC_FIELD_H
 
-#include <charge.h>
-#include <shader.h>
-#include <line.h>
-#include <range.h>
-
 #include <vector>
 #include <iostream>
 #include <cmath>
 #include <algorithm>
+
+#include <sprite.h>
+#include <charge.h>
+#include <shader.h>
+#include <line.h>
+#include <range.h>
+#include <functions.h>
 
 class ElectricField {
 public:
 	ElectricField();
 
 	void init();
-
 	void clear();
-	void addCharge(GLfloat charge, glm::vec2 pos);
+
+	void addCharge(const GLfloat& charge, const glm::vec2& pos);
 	void createLines();
+
 	void drawLines();
 
-	glm::vec2 getNetElectricField(glm::vec2 pos);
-	GLfloat getNetPotential(glm::vec2 pos);
+	const glm::vec2 getNetElectricField(const glm::vec2& pos) const;
+	const GLfloat getNetPotential(const glm::vec2& pos) const;
 
 private:
-	std::vector<Charge> charges;
-	std::vector<Circle> chargeObjects;
-	std::vector<Line> potential;
 
-	GLfloat h;
+	std::vector<Charge> charges;
+	std::vector<Circle> chargesBorders;
+	std::vector<Line> equipotentialLines;
+
+	std::vector<Sprite> chargesSprites;
+
+	GLfloat stride;
 
 	Shader lineShader;
-	Shader potentialShader;
+
 private:
+
 	void setLinesStartPoints(Charge&);
 
-	void genLine(Line&, bool isPositive);
+	void genLine(Line&, const bool isPositive);
 	void genField(Charge&);
 
-	void genPotential(Line line, GLfloat charge);
-	void genPotential(glm::vec2 point);
+	void genPotential(const Line& line, const GLfloat& charge);
+	void genPotential(const glm::vec2& point);
 
-	int getNextPoint(int i, float charge);
-
-	glm::vec2 getPerpendicular(glm::vec2 v);
-	bool isNear(glm::vec2 pos, glm::vec2 target, GLfloat radius);
-	bool equal(const glm::vec2 &vecA, const glm::vec2 &vecB);
+	int getNextPoint(const Line& line, int i, GLfloat voltage);
 };
 
 #endif

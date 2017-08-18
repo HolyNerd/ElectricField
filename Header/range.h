@@ -4,7 +4,6 @@
 
 #include <glm/vec2.hpp>
 #include <glm/glm.hpp>
-#include <iostream>
 
 struct Range {
 	int start;
@@ -12,7 +11,6 @@ struct Range {
 
 	bool isIn(int i);
 };
-
 
 struct Circle {
 	glm::vec2 pos;

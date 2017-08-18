@@ -1,84 +1,78 @@
 
-#include <line.h>
 #include <GL/glew.h>
-#include <GL/glfw3.h>
-#include <iostream>
 #include <glm/gtc/type_ptr.hpp>
+
+#include <line.h>
 #include <range.h>
 
 Line::Line() { 
 	buffers = new GLuint[numBuffers];
 	shader = new Shader();
-	lineColor = glm::vec4((121)/255.0f, (154)/255.0f, (209)/255.0f, 1.0);
+	lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0);
+
+	glCreateBuffers(numBuffers, buffers);
+	glCreateVertexArrays(1, &vao);
 }
+
 Line::Line(glm::vec2 startPoint) { 
-	controlPoints.push_back(startPoint); 
-
 	buffers = new GLuint[numBuffers];
 	shader = new Shader();
-	lineColor = glm::vec4((121)/255.0f, (154)/255.0f, (209)/255.0f, 1.0);
-}
-
-Line::Line(const Line& rhs) { 
-
-	controlPoints = rhs.controlPoints;
-
-	buffers = new GLuint[numBuffers];
-	shader = new Shader();
-	*shader = *(rhs.shader);
-
-	lineColor = rhs.lineColor;
+	lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0);
 
 	glCreateBuffers(numBuffers, buffers);
 	glCreateVertexArrays(1, &vao);
 
-	glBindVertexArray(vao);
+	controlPoints.push_back(startPoint);
+}
 
-	glBindBuffer(GL_ARRAY_BUFFER, buffers[positionBuffer]);
+Line::Line(const Line& rhs) { 
+	buffers = new GLuint[numBuffers];
+	shader = new Shader();
+	lineColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0);
 
-	glBufferData(
-		GL_ARRAY_BUFFER, 
-		controlPoints.size() * sizeof(glm::vec2), 
-		controlPoints.data(), 
-		GL_STATIC_DRAW
-	);
+	glCreateBuffers(numBuffers, buffers);
+	glCreateVertexArrays(1, &vao);
 
+	// Copies values from input Line
+	controlPoints = rhs.controlPoints;
 
-	glVertexArrayVertexBuffer(vao, 0, buffers[positionBuffer], 0, 
-		sizeof(GLfloat)*2);
-	glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
+	setShader(rhs.getShader());
 
-	glVertexAttribBinding(0, 0);
-	glEnableVertexAttribArray(0);
+	lineColor = rhs.lineColor;
 
+	updateBuffer();
 
-	GLfloat color[4];
-	color[0] = lineColor.r;
-	color[1] = lineColor.g;
-	color[2] = lineColor.b;
-	color[3] = lineColor.a;
-	glBindBuffer(GL_ARRAY_BUFFER, buffers[colorBuffer]);
+}
 
-	glBufferData(
-		GL_ARRAY_BUFFER, 
-		sizeof(color), 
-		color, 
-		GL_STATIC_DRAW
-	);
+const Shader Line::getShader() const {
+	return *shader;
+}
+const glm::vec2& Line::getPoint(const int& i) const {
+	return controlPoints[i];
+}
+const int Line::getSize() const {
+	return controlPoints.size();
+}
+const bool Line::isIntersects (
+	const int& startPoint,
+	const int& endPoint,
+	const Line& rhs
+) const {
+	for(int i = startPoint; i < endPoint; i++) {
+		const glm::vec2& currPoint = controlPoints[i];
 
-
-	glVertexArrayVertexBuffer(vao, 1, buffers[colorBuffer], 0, 0);
-	glVertexArrayAttribFormat(vao, 1, 4, GL_FLOAT, GL_FALSE, 0);
-
-	glVertexAttribBinding(1, 1);
-	glEnableVertexAttribArray(1);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+		for(int p = 0; p < rhs.getSize(); p++) 
+			if(isNear(currPoint, rhs.getPoint(p), 0.001)) 
+				return true;
+	}
+	return false;
 }
 
 void Line::addPoint(glm::vec2 point) {
 	controlPoints.push_back(point);
+}
+void Line::setColor(glm::vec4 newColor) {
+	lineColor = newColor;
 }
 
 void Line::clear() {
@@ -86,50 +80,26 @@ void Line::clear() {
 	controlPoints.clear();
 	controlPoints.push_back(startPoint);
 }
-
-bool Line::isIntersects(int startPoint, int endPoint, Line& rhs) {
-
-	for(int i = startPoint; i < endPoint; i++) {
-
-		glm::vec2 currPoint = controlPoints[i];
-
-
-		for(int p = 0; p < rhs.getSize(); p++) {
-			if(isNear(currPoint, rhs.getPoint(p), 0.001)) {
-
-				return true;
-			}
-
-		}
-	}
-	return false;
-}
-
 void Line::setShader(Shader shader) {
+	delete this->shader;
 	this->shader = new Shader(shader);
 }
-
-glm::vec2 Line::getPoint(int i) {
-	return controlPoints[i];
-}
-
-int Line::getSize() {
-	return controlPoints.size();
-}
-
 void Line::updateBuffer() {
+	// If buffer are not created - create them 
 	for(int i = 0; i < numBuffers; i++) 
-		if(glIsBuffer(buffers[i]) == GL_FALSE) 
+		if(glIsBuffer(buffers[i]) == GL_FALSE) {
 			glCreateBuffers(1, &buffers[i]); 
-		
+		}
+
 	if(glIsVertexArray(vao) == GL_FALSE) 
 		glCreateVertexArrays(1, &vao); 
 
 
+	// Bind VAO
 	glBindVertexArray(vao);
-
+	
+	// Set Position Buffer
 	glBindBuffer(GL_ARRAY_BUFFER, buffers[positionBuffer]);
-
 	glBufferData(
 		GL_ARRAY_BUFFER, 
 		controlPoints.size() * sizeof(glm::vec2), 
@@ -137,23 +107,25 @@ void Line::updateBuffer() {
 		GL_STATIC_DRAW
 	);
 
-
+	// Bind bao and shader attrib
 	glVertexArrayVertexBuffer(vao, 0, buffers[positionBuffer], 0, 
 		sizeof(GLfloat)*2);
 	glVertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-
 	glVertexAttribBinding(0, 0);
 	glEnableVertexAttribArray(0);
 
 
+	// Set Color Buffer
+	glBindBuffer(GL_ARRAY_BUFFER, buffers[colorBuffer]);
 
+	// Create color
 	GLfloat color[4];
 	color[0] = lineColor.r;
 	color[1] = lineColor.g;
 	color[2] = lineColor.b;
 	color[3] = lineColor.a;
-	glBindBuffer(GL_ARRAY_BUFFER, buffers[colorBuffer]);
 
+	// Fetch buffer data
 	glBufferData(
 		GL_ARRAY_BUFFER, 
 		sizeof(color), 
@@ -161,43 +133,22 @@ void Line::updateBuffer() {
 		GL_STATIC_DRAW
 	);
 
-
+	// Bind bao and shader attrib
 	glVertexArrayVertexBuffer(vao, 1, buffers[colorBuffer], 0, 0);
 	glVertexArrayAttribFormat(vao, 1, 4, GL_FLOAT, GL_FALSE, 0);
-
 	glVertexAttribBinding(1, 1);
 	glEnableVertexAttribArray(1);
 
+	// Unbind all buffers
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
-
-void Line::setColor(glm::vec4 newColor) {
-	lineColor = newColor;
-}
-
 void Line::draw() {
 	glBindVertexArray(vao);
 	glUseProgram(*shader);
 	
 	glDrawArrays(GL_LINE_STRIP, 0, controlPoints.size());
 	glBindVertexArray(0);
-}
-
-
-bool Line::isNear(glm::vec2 pos, glm::vec2 target, GLfloat radius) {
-	Circle c;
-	c.pos = pos;
-	c.radius = radius;
-	if(c.isInCircle(target))
-		return true;
-	return false;
-}
-
-bool Line::equal(const glm::vec2 &vecA, const glm::vec2 &vecB) {
-	const double epsilion = 0.0001;
-	return fabs(vecA[0] -vecB[0]) < epsilion   
- 		&& fabs(vecA[1] -vecB[1]) < epsilion;
 }
 
 
