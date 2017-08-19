@@ -16,10 +16,11 @@
 #include <sprite.h>
 #include <shader.h>
 #include <electricField.h>
+#include <GUI.h>
 
 class Application {
 public:
-	Application();
+	Application(GLFWwindow*);
 	~Application();
 
 	void init();
@@ -29,7 +30,12 @@ private:
 	ElectricField electricField;
 public: GLFWwindow* getWindow() const;
 private: 
+	Button button;
+	Button* button2;
+
 	GLFWwindow* window;
+	GUI gui;
+
 	Sprite background;
 };
 

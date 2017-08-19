@@ -15,11 +15,11 @@ run: main
 
 main: $(SOURCE)main.o $(SOURCE)application.o $(SOURCE)shader.o \
 	$(SOURCE)charge.o $(SOURCE)electricField.o $(SOURCE)line.o \
-	$(SOURCE)range.o $(SOURCE)sprite.o $(SOURCE)button.o\
+	$(SOURCE)range.o $(SOURCE)sprite.o $(SOURCE)button.o $(SOURCE)GUI.o \
 	$(SOURCE)functions.o $(HEADER)*.h  $(SHADERS)*.glsl
 	$(MAKE) -o main $(SOURCE)main.o $(SOURCE)shader.o $(SOURCE)application.o \
 	$(SOURCE)charge.o $(SOURCE)electricField.o $(SOURCE)line.o $(SOURCE)range.o \
-	$(SOURCE)sprite.o $(SOURCE)functions.o $(SOURCE)button.o \
+	$(SOURCE)sprite.o $(SOURCE)functions.o $(SOURCE)button.o $(SOURCE)GUI.o \
 	-I$(INCLUDE) -I$(HEADER) -L$(LIB) $(LIB_LINK) 
 
 $(SOURCE)main.o: $(SOURCE)main.cpp
@@ -60,6 +60,10 @@ $(SOURCE)sprite.o: $(SOURCE)sprite.cpp $(HEADER)sprite.h
 
 $(SOURCE)button.o: $(SOURCE)button.cpp $(HEADER)button.h
 	$(MAKE) -c $(SOURCE)button.cpp -o$(SOURCE)button.o \
+	-I$(INCLUDE) -I$(HEADER)
+
+$(SOURCE)GUI.o: $(SOURCE)GUI.cpp $(HEADER)GUI.h
+	$(MAKE) -c $(SOURCE)GUI.cpp -o$(SOURCE)GUI.o \
 	-I$(INCLUDE) -I$(HEADER)
 
 clean:

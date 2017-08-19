@@ -33,7 +33,6 @@ Sprite::~Sprite() {
 
 void Sprite::init() {
 	buffers = new GLuint[numBuffers];
-	
 	glCreateBuffers(numBuffers, buffers);
 	glGenTextures(1, &texture);
 	glCreateVertexArrays(1, &vao);

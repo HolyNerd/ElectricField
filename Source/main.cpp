@@ -1,23 +1,27 @@
 
+
+#include <GL/glew.h>
+#include <GL/glfw3.h>
+
 #include <iostream>
 #include <application.h>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
-
 int main() {
+	glfwInit();
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	Application app;
+	GLFWwindow* window = glfwCreateWindow(900, 900, "OpenGL: Electric Field", NULL, NULL);
+	glfwMakeContextCurrent(window);
+
+	glewInit();
+
+	Application app(window);
 	app.init();
 
-	while(!glfwWindowShouldClose(app.getWindow())) {
-
-		//glfwSetFramebufferSizeCallback(app.getWindow(), framebuffer_size_callback);
-
+	while(!glfwWindowShouldClose(window)) {
 		app.display();
 
-		glfwSwapBuffers(app.getWindow());
+		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 

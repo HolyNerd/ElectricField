@@ -12,6 +12,12 @@ struct Range {
 	bool isIn(int i);
 };
 
+struct Area {
+	glm::vec2 top_left;
+	glm::vec2 down_right;
+	bool isInArea(glm::vec2 point);
+};
+
 struct Circle {
 	glm::vec2 pos;
 	float radius;

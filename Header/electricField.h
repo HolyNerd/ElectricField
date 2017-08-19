@@ -34,7 +34,6 @@ private:
 	std::vector<Charge> charges;
 	std::vector<Circle> chargesBorders;
 	std::vector<Line> equipotentialLines;
-
 	std::vector<Sprite> chargesSprites;
 
 	GLfloat stride;

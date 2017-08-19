@@ -13,7 +13,6 @@
 ElectricField::ElectricField() 
 	: stride { 0.005f }, equipotentialLines(0)
 {
-
 }
 
 void ElectricField::init() {
@@ -55,6 +54,7 @@ void ElectricField::addCharge(const GLfloat& charge, const glm::vec2& pos) {
 	chargesBorders.push_back(border);
 }
 
+// CLEAR_DRAW
 void ElectricField::clear() {
 	charges.clear();
 	chargesBorders.clear();
@@ -79,6 +79,7 @@ void ElectricField::drawLines() {
 		}
 	}
 	#endif
+
 	for(int i = 0; i < chargesSprites.size(); i++) {
 		chargesSprites[i].update();
 		chargesSprites[i].draw();
@@ -86,17 +87,21 @@ void ElectricField::drawLines() {
 
 }
 
+// GENERAL CREATE LINES METHOD
 void ElectricField::createLines() {
 	// Draw charges sprites
 	for(Charge& ch : charges) {
 		Sprite newChargeSprite;
+
 		newChargeSprite.init();
 		newChargeSprite.setShader("/home/holynerd/Desktop/Projects/ElectricField/Shaders/charge");
 		newChargeSprite.setRect(ch.getPosition(), 0.1f, 0.1f);
+
 		if(ch.getCharge() > 0)
 			newChargeSprite.setTexture("/home/holynerd/Desktop/Projects/ElectricField/Media/ChargePos.png");
 		else
 			newChargeSprite.setTexture("/home/holynerd/Desktop/Projects/ElectricField/Media/ChargeNeg.png");
+
 		chargesSprites.push_back(newChargeSprite);
 	}
 
@@ -119,8 +124,11 @@ void ElectricField::createLines() {
 	}
 }
 
+// FORCE LINES
 void ElectricField::genField(Charge& charge) {
+
 	for(int i = 0; i < charge.getFieldLines().size(); i++) {
+
 		if(charge.getCharge() < 0) 
 			genLine(charge.getFieldLines()[i], false);
 		else
@@ -128,6 +136,7 @@ void ElectricField::genField(Charge& charge) {
 		
 		charge.getFieldLines()[i].updateBuffer();
 	}
+
 }
 void ElectricField::genLine(Line& line, bool isPositive) {
 	bool drawNext = true;
@@ -165,16 +174,17 @@ void ElectricField::genLine(Line& line, bool isPositive) {
 			if(c.isInCircle(nextPointPos)) 
 				return;
 
-		// Check for next net electric field
-	//	glm::vec2 nextNetField = getNetElectricField(nextPointPos);
-	//	nextNetField = glm::normalize(nextNetField);
-	//	if(isPositive)
-	//		nextNetField*=-1;
+	// Check for next net electric field
+		nextNetField = getNetElectricField(nextPointPos);
+		nextNetField = glm::normalize(nextNetField);
+		if(isPositive)
+			nextNetField*=-1;
 				
-		// If next net electric field and current inverted are equil - then quit
-	//	if(areEqual(nextNetField, netField)) {
-	//		return;
-	//	}
+	// If next net electric field and current inverted are equil - then quit
+		if(areEqual(nextNetField, netField)) {
+			line.addPoint(nextPointPos);
+			return;
+		}
 
 		// Add point to line
 		line.addPoint(nextPointPos);
