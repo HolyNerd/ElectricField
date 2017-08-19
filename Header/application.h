@@ -30,6 +30,7 @@ private:
 public: GLFWwindow* getWindow() const;
 private: 
 	GLFWwindow* window;
+	Sprite background;
 };
 
 #endif

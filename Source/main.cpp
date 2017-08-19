@@ -13,7 +13,7 @@ int main() {
 
 	while(!glfwWindowShouldClose(app.getWindow())) {
 
-		glfwSetFramebufferSizeCallback(app.getWindow(), framebuffer_size_callback);
+		//glfwSetFramebufferSizeCallback(app.getWindow(), framebuffer_size_callback);
 
 		app.display();
 

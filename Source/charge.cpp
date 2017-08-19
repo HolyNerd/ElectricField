@@ -9,6 +9,10 @@ Charge::Charge(GLfloat charge, glm::vec2 pos)
 	: Q(charge), position(pos)
 { }
 
+Charge::~Charge() {
+	fieldLines.clear();
+}
+
 const glm::vec2& Charge::getPosition() const {
 	return position;
 }

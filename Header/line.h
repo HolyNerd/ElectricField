@@ -26,6 +26,7 @@ public:
 	Line();
 	Line(glm::vec2 startPoint);
 	Line(const Line&);
+	~Line();
 
 	// Get Methods
 	const glm::vec2& getPoint(const int& i) const;

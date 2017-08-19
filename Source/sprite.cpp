@@ -11,16 +11,23 @@ Sprite::Sprite() {
 
 Sprite::Sprite(const Sprite& rhs) {
 	init();
-	for(int i = 0; i < 4; i++)
+	for(int i = 0; i < 4; i++) {
+		center_coordVectors[i] = rhs.center_coordVectors[i];
 		coords[i] = rhs.coords[i];
+	}
 	shader = rhs.shader;
-	texture = rhs.texture;
+	
+	texturePath = rhs.texturePath;
+
+	setTexture(texturePath);
 }
 
 Sprite::~Sprite() {
 	glDeleteBuffers(numBuffers, buffers);
 	glDeleteVertexArrays(1, &vao);
-	
+	glDeleteTextures(1, &texture);
+	glDeleteProgram(shader);
+
 	delete[] buffers;
 }
 
@@ -32,7 +39,9 @@ void Sprite::init() {
 	glCreateVertexArrays(1, &vao);
 }
 
-void Sprite::setRect(glm::vec2 center, GLfloat width, GLfloat height) {
+void Sprite::setRect(glm::vec2 setCenter, GLfloat width, GLfloat height) {
+
+	center = setCenter;
 
 	coords[0].x = center.x - width/2;
 	coords[0].y = center.y - height/2;
@@ -46,10 +55,17 @@ void Sprite::setRect(glm::vec2 center, GLfloat width, GLfloat height) {
 	coords[3].x = center.x - width/2;
 	coords[3].y = center.y + height/2;
 
-	shader.shaderInfo("/home/holynerd/Desktop/Projects/ElectricField/Shaders/charge");
+	for(int i = 0; i < 4; i++) {
+		center_coordVectors[i] = coords[i] - center;
+	}
+}
+
+void Sprite::setShader(const char* fileName) {
+	shader.shaderInfo(fileName);
 }
 
 void Sprite::setTexture(const char* fileName) {
+	texturePath = fileName;
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -67,6 +83,25 @@ void Sprite::setTexture(const char* fileName) {
 		std::cout << "Failed to load texture\n";
 	}
 	stbi_image_free(data);
+}
+
+void Sprite::setPosition(glm::vec2 newPosition) {
+	center = newPosition;
+
+	for(int i = 0; i < 4; i++)
+		coords[i] = center + center_coordVectors[i];
+}
+
+void Sprite::rotate(GLfloat angle) {
+	glm::mat2 rotMat (
+		glm::vec2(cos(angle), -sin(angle)),
+		glm::vec2(sin(angle), cos(angle))
+	);
+	for(int i = 0; i < 4; i++) 
+		center_coordVectors[i] = center_coordVectors[i] * rotMat;
+
+	for(int i = 0; i < 4; i++)
+		coords[i] = center + center_coordVectors[i];
 }
 
 void Sprite::update() {

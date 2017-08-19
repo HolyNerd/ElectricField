@@ -36,12 +36,18 @@ Line::Line(const Line& rhs) {
 	// Copies values from input Line
 	controlPoints = rhs.controlPoints;
 
-	setShader(rhs.getShader());
+	shader->shaderInfo(rhs.getShader().getFilePath());
 
 	lineColor = rhs.lineColor;
 
 	updateBuffer();
+}
 
+Line::~Line() {
+	controlPoints.clear();
+	glDeleteProgram(*shader);
+	glDeleteBuffers(numBuffers, buffers);
+	glDeleteVertexArrays(1, &vao);
 }
 
 const Shader Line::getShader() const {
@@ -80,19 +86,19 @@ void Line::clear() {
 	controlPoints.clear();
 	controlPoints.push_back(startPoint);
 }
-void Line::setShader(Shader shader) {
-	delete this->shader;
-	this->shader = new Shader(shader);
+void Line::setShader(Shader newShader) {
+	//delete this->shader;
+	this->shader = new Shader(newShader);
 }
 void Line::updateBuffer() {
 	// If buffer are not created - create them 
-	for(int i = 0; i < numBuffers; i++) 
-		if(glIsBuffer(buffers[i]) == GL_FALSE) {
-			glCreateBuffers(1, &buffers[i]); 
-		}
+//	for(int i = 0; i < numBuffers; i++) 
+//		if(glIsBuffer(buffers[i]) == GL_FALSE) {
+//			glCreateBuffers(1, &buffers[i]); 
+	//	}
 
-	if(glIsVertexArray(vao) == GL_FALSE) 
-		glCreateVertexArrays(1, &vao); 
+//	if(glIsVertexArray(vao) == GL_FALSE) 
+//		glCreateVertexArrays(1, &vao); 
 
 
 	// Bind VAO

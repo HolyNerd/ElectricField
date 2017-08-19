@@ -10,13 +10,26 @@ Shader::Shader() {
 }
 Shader::Shader(const std::string shaderName) {
 	shaderInfo(shaderName);
+	filePath = shaderName;
 }
 Shader::Shader(const Shader& rhs) {
-	program = rhs.program;
+	filePath = rhs.getFilePath();
+	shaderInfo(filePath);
+}
+
+Shader& Shader::operator=(const Shader& rhs) {
+	filePath = rhs.getFilePath();
+	shaderInfo(filePath);
+}
+
+Shader::~Shader() {
+	glDeleteProgram(program); // if comment - draws only charge, else - draw all, but shity
 }
 
 void Shader::shaderInfo(const std::string shaderName) {
 	// Creating temp shaders
+	filePath = shaderName;
+
 	GLuint vertShader = createShader(GL_VERTEX_SHADER, shaderName + ".vert.glsl");
 	GLuint fragShader = createShader(GL_FRAGMENT_SHADER, shaderName + ".frag.glsl");
 
@@ -40,6 +53,11 @@ void Shader::shaderInfo(const std::string shaderName) {
 Shader::operator GLuint() {
 	return program;
 }
+
+std::string Shader::getFilePath() const {
+	return filePath;
+}
+
 GLuint Shader::createShader(GLenum type, const std::string name) {
 	GLuint shader = glCreateShader(type);
 

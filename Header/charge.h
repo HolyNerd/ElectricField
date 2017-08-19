@@ -22,6 +22,7 @@ public:
 	// Constructors
 	Charge();
 	Charge(GLfloat value, glm::vec2 position);
+	~Charge();
 
 	// Return electric field, that creats this charge
 	// at point pos
