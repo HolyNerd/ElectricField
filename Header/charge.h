@@ -30,6 +30,7 @@ public:
 	
 	// Returns position of charge
 	const glm::vec2& getPosition() const;
+	void setPosition(glm::vec2 newPosition);
 	// Returns value of charge
 	const GLfloat& getCharge() const;
 

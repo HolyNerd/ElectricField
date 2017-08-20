@@ -12,14 +12,26 @@ int main() {
 
 	GLFWwindow* window = glfwCreateWindow(900, 900, "OpenGL: Electric Field", NULL, NULL);
 	glfwMakeContextCurrent(window);
-
+	glfwSwapInterval(0);
+	
 	glewInit();
 
 	Application app(window);
 	app.init();
 
+	Application::Mode mode;
+
 	while(!glfwWindowShouldClose(window)) {
-		app.display();
+		mode = app.getMode();
+
+		if(mode == Application::DISPLAY)
+			app.display();
+		else if(mode == Application::EDIT_ADD)
+			app.editMode_add();
+		else if(mode == Application::EDIT_MOVE)
+			app.editMode_move();
+		else if(mode == Application::EDIT_DELETE)
+			app.editMode_delete();
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

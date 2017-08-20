@@ -17,6 +17,19 @@ ElectricField::ElectricField()
 
 void ElectricField::init() {
 	lineShader.shaderInfo("/home/holynerd/Desktop/Projects/ElectricField/Shaders/line");
+
+//	Sprite posChargeSprite;
+//	Sprite negChargeSprite;
+
+	posChargeSprite.init();
+	posChargeSprite.setShader("/home/holynerd/Desktop/Projects/ElectricField/Shaders/charge");
+	posChargeSprite.setRect(glm::vec2(0,0), 0.1f, 0.1f);
+	posChargeSprite.setTexture("/home/holynerd/Desktop/Projects/ElectricField/Media/charge_positive.png");
+
+	negChargeSprite.init();
+	negChargeSprite.setShader("/home/holynerd/Desktop/Projects/ElectricField/Shaders/charge");
+	negChargeSprite.setRect(glm::vec2(0,0), 0.1f, 0.1f);
+	negChargeSprite.setTexture("/home/holynerd/Desktop/Projects/ElectricField/Media/charge_neg.png");
 }
 
 const glm::vec2 ElectricField::getNetElectricField(const glm::vec2& pos) const {
@@ -39,7 +52,6 @@ const GLfloat ElectricField::getNetPotential(const glm::vec2& pos) const {
 	return sum;
 }
 
-
 void ElectricField::addCharge(const GLfloat& charge, const glm::vec2& pos) {
 	if(charge == 0)
 		return;
@@ -61,66 +73,72 @@ void ElectricField::clear() {
 	equipotentialLines.clear();
 	chargesSprites.clear();
 }
-void ElectricField::drawLines() {
-	
-	#ifdef EQUIPOTENTIAL // Draw equipotential lines
-	
+void ElectricField::drawLines(bool drawLines) {
+
 	glLineWidth(1.5f);
-	for(int i = 0; i < equipotentialLines.size(); i++)
-		equipotentialLines[i].draw();
-	#endif
-
-	#ifdef FORCE_LINES // Draw force lines
+	if(drawLines)
+		for(int i = 0; i < equipotentialLines.size(); i++)
+			equipotentialLines[i].draw();
 	
+
+	// Draw force lines
 	glLineWidth(2.0f);
-	for(Charge& ch : charges) {
-		for(int i = 0; i < ch.getFieldLines().size(); i++) {
-			ch.getFieldLines()[i].draw();
-		}
-	}
-	#endif
-
-	for(int i = 0; i < chargesSprites.size(); i++) {
-		chargesSprites[i].update();
-		chargesSprites[i].draw();
-	}
-
+	if(drawLines)
+		for(Charge& ch : charges) {
+			for(int i = 0; i < ch.getFieldLines().size(); i++) {
+				ch.getFieldLines()[i].draw();
+			}
+		}	
+	drawSprites();
+	//for(int i = 0; i < chargesSprites.size(); i++) {
+	//	chargesSprites[i].update();
+	//	chargesSprites[i].draw();
+	//}
 }
 
 // GENERAL CREATE LINES METHOD
-void ElectricField::createLines() {
+void ElectricField::createLines(bool createForceLines, bool createEquipotential) {
 	// Draw charges sprites
-	for(Charge& ch : charges) {
-		Sprite newChargeSprite;
+	//for(Charge& ch : charges) {
+	//	Sprite newChargeSprite;
 
-		newChargeSprite.init();
-		newChargeSprite.setShader("/home/holynerd/Desktop/Projects/ElectricField/Shaders/charge");
-		newChargeSprite.setRect(ch.getPosition(), 0.1f, 0.1f);
+	//	newChargeSprite.init();
+	//	newChargeSprite.setShader("/home/holynerd/Desktop/Projects/ElectricField/Shaders/charge");
+	//	newChargeSprite.setRect(ch.getPosition(), 0.1f, 0.1f);
 
-		if(ch.getCharge() > 0)
-			newChargeSprite.setTexture("/home/holynerd/Desktop/Projects/ElectricField/Media/ChargePos.png");
-		else
-			newChargeSprite.setTexture("/home/holynerd/Desktop/Projects/ElectricField/Media/ChargeNeg.png");
+	//	if(ch.getCharge() > 0)
+	//		newChargeSprite.setTexture("/home/holynerd/Desktop/Projects/ElectricField/Media/ChargePos.png");
+	//	else
+	//		newChargeSprite.setTexture("/home/holynerd/Desktop/Projects/ElectricField/Media/ChargeNeg.png");
 
-		chargesSprites.push_back(newChargeSprite);
-	}
+	//	chargesSprites.push_back(newChargeSprite);
+	//}
 
 	for(int c = 0; c < charges.size(); c++) {
 
-		#ifdef FORCE_LINES
-
-		setLinesStartPoints(charges[c]);
-		genField(charges[c]);	
-
-		#endif
-
-		#ifdef EQUIPOTENTIAL
-
+		if(createForceLines) {
+			setLinesStartPoints(charges[c]);
+			genField(charges[c]);	
+		}
+		if(createEquipotential) {
 			std::vector<Line> chargeLines = charges[c].getFieldLines();
 			std::sort(chargeLines.begin(), chargeLines.end());
 			genPotential(chargeLines[chargeLines.size()-1], charges[c].getCharge());
-		
-		#endif
+		}
+
+	}
+}
+void ElectricField::drawSprites() {
+	for(int i = 0; i < charges.size(); i++) {
+		if(charges[i].getCharge() < 0) {
+			negChargeSprite.setPosition(charges[i].getPosition());
+			negChargeSprite.update();
+			negChargeSprite.draw();
+			continue;
+		}
+		posChargeSprite.setPosition(charges[i].getPosition());
+		posChargeSprite.update();
+		posChargeSprite.draw();
 	}
 }
 

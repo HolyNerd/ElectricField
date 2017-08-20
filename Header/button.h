@@ -4,11 +4,13 @@
 #include <string>
 
 #include <GL/glew.h>
+
 #include <glm/vec2.hpp>
 
 #include <range.h>
 #include <sprite.h>
 
+#include <GL/glfw3.h>
 class Button {
 public:
 	Button();
@@ -19,8 +21,14 @@ public:
 
 	void setPosition(glm::vec2);
 	void setSize(GLfloat width, GLfloat height);
-	void setButtonImage(const char* filePath);
+
+	//void setButtonImage(const char* filePath);
+	void setPressedButtonImage(const char* filePath);
+	void setUnpressedButtonImage(const char* filePath);
+
 	void setButtonName(const std::string&);
+
+	void setPress(bool isPressed);
 
 	bool isIn(glm::vec2 point);
 
@@ -32,7 +40,8 @@ private:
 	GLfloat _height;
 	glm::vec2 _position;
 
-	const char* _image_path;
+	const char* _unpressed_button_image_path;
+	const char* _pressed_button_image_path;
 
 	std::string _button_name;
 };

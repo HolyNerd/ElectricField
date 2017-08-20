@@ -17,6 +17,10 @@ const glm::vec2& Charge::getPosition() const {
 	return position;
 }
 
+void Charge::setPosition(glm::vec2 newPosition) {
+	position = newPosition;
+}
+
 const GLfloat& Charge::getCharge() const {
 	return Q;
 }

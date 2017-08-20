@@ -22,9 +22,11 @@ public:
 	void clear();
 
 	void addCharge(const GLfloat& charge, const glm::vec2& pos);
-	void createLines();
 
-	void drawLines();
+	void createLines(bool createForceLines, bool createEquipotential);
+	void drawLines(bool drawLines);
+
+	void drawSprites();
 
 	const glm::vec2 getNetElectricField(const glm::vec2& pos) const;
 	const GLfloat getNetPotential(const glm::vec2& pos) const;
@@ -41,7 +43,6 @@ private:
 	Shader lineShader;
 
 private:
-
 	void setLinesStartPoints(Charge&);
 
 	void genLine(Line&, const bool isPositive);
@@ -51,6 +52,10 @@ private:
 	void genPotential(const glm::vec2& point);
 
 	int getNextPoint(const Line& line, int i, GLfloat voltage);
+
+private:
+	Sprite posChargeSprite;
+	Sprite negChargeSprite;
 };
 
 #endif
